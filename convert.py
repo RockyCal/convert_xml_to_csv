@@ -18,6 +18,7 @@ namespaces = {'gmi': "http://www.isotc211.org/2005/gmi", 'gmd': "http://www.isot
 hydro10 = "http://hydro10.sdsc.edu/"
 #source = "http://hydro10.sdsc.edu/metadata/"
 
+dublin_core = "http://dublincore.org/documents/dcmi-terms/"
 
 def search_dir(request):
     curr_dir = BeautifulSoup(urlopen(request))
@@ -31,7 +32,8 @@ def search_dir(request):
                 print("{}; {}".format(e.msg, request.full_url))
             tree = eTree.parse(urlopen(file_link))
             root = tree.getroot()
-            print(root.tag)
+            for child in root.iter():
+                print(child.tag, child.attrib)
 
 
 def search_from_source(source):
