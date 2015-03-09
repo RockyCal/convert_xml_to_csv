@@ -53,6 +53,28 @@ def search_from_source(source):
             # Each 'file' is a http link to xml file
             search_dir(req)
 
+while True:
+  try: 
+    choice = input("Would you like to run through a single (d)irectory or a (s)ource with many directories?")
+  except ValueError:
+    print("Sorry, could not understand that, please enter 'd' or 's' ")
+    continue
+
+  if choice != 's' and choice != 'd':
+    print("Not a valid option, please enter 'd' or 's' ")
+    continue
+  else:
+    break
+if choice == 's':
+    source_link = input("Please provide the source url: ")
+    search_from_source(source_link)
+elif choice == 'd':
+    directory_link = input("Please provide the directory url: ")
+    dir_request = Request(directory_link)
+    search_dir(dir_request)
+
+
+"""
 choice = input("Would you like to run through a single (d)irectory or a (s)ource with many directories? ")
 if choice == 's':
     source_link = input("Please provide the source url: ")
@@ -63,4 +85,4 @@ elif choice == 'd':
     search_dir(dir_request)
 else:
     print("Not a valid option")
-    choice = input("Would you like to run through a single (d)irectory or a (s)ource with many directories? ")
+    choice = input("Would you like to run through a single (d)irectory or a (s)ource with many directories? ") """
