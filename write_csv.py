@@ -1,6 +1,5 @@
 __author__ = 'Raquel'
 
-
 class Header:
     # Class to represent csv headers
     def __init__(self, name, required):
@@ -17,3 +16,26 @@ dc_dict = {'{http://purl.org/dc/elements/1.1/}name': 'name', '{http://purl.org/d
            'description', '{http://purl.org/dc/elements/1.1/}identifier': 'resource url',
            '{http://purl.org/dc/elements/1.1/}subject': 'keywords',
            '{http://purl.org/dc/elements/1.1/}bibliographicCitation': 'defining citation', }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

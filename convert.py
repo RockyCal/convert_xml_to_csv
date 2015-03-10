@@ -15,6 +15,7 @@ namespaces = {'gmi': "http://www.isotc211.org/2005/gmi", 'gmd': "http://www.isot
               'saxon': "http://saxon.sf.net/", 'srv': "http://www.isotc211.org/2005/srv",
               'schemaLocation': "http://www.isotc211.org/2005/gmi http://www.ngdc.noaa.gov/metadata"
                                 "/published/xsd/schema.xsd"}
+
 hydro10 = "http://hydro10.sdsc.edu/"
 #source = "http://hydro10.sdsc.edu/metadata/"
 
@@ -35,11 +36,12 @@ def search_dir(request):
             for child in root.iter():
                 print(child.tag, child.attrib)
 
-
 def search_from_source(source):
     soup = BeautifulSoup(urlopen(source))
+
     # Get all links in this page
     for each in soup.find_all('a'):
+
         # Check if directory. Directory will have format /metadata/[anything]/
         if re.fullmatch('/metadata/(.*)/', each['href']) and each['href'] != '/metadata/annotated/':
             req = Request(urljoin(hydro10, each['href']))
@@ -53,13 +55,13 @@ def search_from_source(source):
             # Each 'file' is a http link to xml file
             search_dir(req)
 
+"""Initialize by asking user for type of input and link to it"""
 while True:
   try: 
     choice = input("Would you like to run through a single (d)irectory or a (s)ource with many directories?")
   except ValueError:
     print("Sorry, could not understand that, please enter 'd' or 's' ")
     continue
-
   if choice != 's' and choice != 'd':
     print("Not a valid option, please enter 'd' or 's' ")
     continue
@@ -72,17 +74,3 @@ elif choice == 'd':
     directory_link = input("Please provide the directory url: ")
     dir_request = Request(directory_link)
     search_dir(dir_request)
-
-
-"""
-choice = input("Would you like to run through a single (d)irectory or a (s)ource with many directories? ")
-if choice == 's':
-    source_link = input("Please provide the source url: ")
-    search_from_source(source_link)
-elif choice == 'd':
-    directory_link = input("Please provide the directory url: ")
-    dir_request = Request(directory_link)
-    search_dir(dir_request)
-else:
-    print("Not a valid option")
-    choice = input("Would you like to run through a single (d)irectory or a (s)ource with many directories? ") """
