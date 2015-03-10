@@ -6,6 +6,7 @@ from urllib.request import urlopen, Request, urljoin
 from urllib.error import URLError, HTTPError
 from bs4 import BeautifulSoup
 import re
+import csv
 
 namespaces = {'gmi': "http://www.isotc211.org/2005/gmi", 'gmd': "http://www.isotc211.org/2005/gmd", 'gco':
               'http://www.isotc211.org/2005/gco', 'gml': "http://www.opengis.net/gml/3.2", 'gmx':
@@ -20,7 +21,34 @@ hydro10 = "http://hydro10.sdsc.edu/"
 
 dublin_core = "http://dublincore.org/documents/dcmi-terms/"
 
+fieldnames = ['name', 'description', 'resource url', 'keywords', 'defining citation', 'related to',
+              'parent organization', 'abbreviation', 'synonyms', 'funding info']
+
+def parse_dublin_core(root, writer):
+    name = root.find('{http://purl.org/dc/elements/1.1/}title').text
+    url = root.find('{http://purl.org/dc/elements/1.1/}identifier').text
+    description = root.find('{http://purl.org/dc/elements/1.1/}description')
+    keywords = []
+    for each in root.findall('{http://purl.org/dc/elements/1.1/}subject'):
+        keywords.append(each.text)
+    if root.find('{http://purl.org/dc/elements/1.1/}bibliographicCitation'):
+        defining_citation = root.find('{http://purl.org/dc/elements/1.1/}bibliographicCitation').text
+    else:
+        defining_citation = ""
+    if root.find('{http://purl.org/dc/elements/1.1/}references'):
+        related_to = root.find('{http://purl.org/dc/elements/1.1/}references').text
+    else:
+        related_to = ""
+    writer.writerow({'name': name, 'resource url': url, 'description': description, 'keywords': ', '.join(keywords),
+                     'defining citation': defining_citation, 'related to': related_to, 'parent organization': '',
+                     'abbreviation': '', 'synonyms': '', 'funding info':''})
+
+
 def search_dir(request):
+    resource_title = re.sub('http://hydro10.sdsc.edu/metadata/', '', request.full_url)
+    with open('{}.csv'.format(resource_title)) as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    writer.writeheader()
     curr_dir = BeautifulSoup(urlopen(request))
     dir_link = request.full_url
     for file in curr_dir.find_all('a'):
@@ -32,8 +60,8 @@ def search_dir(request):
                 print("{}; {}".format(e.msg, request.full_url))
             tree = eTree.parse(urlopen(file_link))
             root = tree.getroot()
-            for child in root.iter():
-                print(child.tag, child.attrib)
+            if root.tag == "{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF":
+                parse_dublin_core(root, writer)
 
 
 def search_from_source(source):
