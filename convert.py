@@ -32,20 +32,31 @@ fieldnames = ['file_id', 'name', 'description', 'resource url', 'keywords', 'def
 
 
 def parse_iso(root, record, writer):
-    print("parsing ISO")
+    print("-----------------------parsing ISO---------------------------")
      #find("{http://www.isotc211.org/2005/gmd}MI_Metadata")
+
+    record.file_id = root.find("{http://www.isotc211.org/2005/gmd}fileIdentifier").find("{http://www.isotc211.org/2005/gco}CharacterString").text
+
+    print(record.file_id)
 
     #find name
     record.name = root.find("{http://www.isotc211.org/2005/gmd}identificationInfo").find("{http://www.isotc211.org/2005/gmd}MD_DataIdentification").find("{http://www.isotc211.org/2005/gmd}citation").find("{http://www.isotc211.org/2005/gmd}CI_Citation").find("{http://www.isotc211.org/2005/gmd}title").find("{http://www.isotc211.org/2005/gco}CharacterString").text
 
     print(record.name)
 
+    for search in root.iter("{http://www.isotc211.org/2005/gmd}MD_DigitalTransferOptions"):
+      record.url = search.find("{http://www.isotc211.org/2005/gmd}onLine").find("{http://www.isotc211.org/2005/gmd}CI_OnlineResource").find("{http://www.isotc211.org/2005/gmd}linkage").find("{http://www.isotc211.org/2005/gmd}URL").text
+      print(record.url)
 
-    record.url = root.find("{http://www.isotc211.org/2005/gmd}distributionInfo").find("{http://www.isotc211.org/2005/gmd}MD_Distribution").find("{http://www.isotc211.org/2005/gmd}transferOptions").find("{http://www.isotc211.org/2005/gmd}MD_DigitalTransferOptions").find("{http://www.isotc211.org/2005/gmd}onLine").find("{http://www.isotc211.org/2005/gmd}CI_OnlineResource").find("{http://www.isotc211.org/2005/gmd}linkage").find("{http://www.isotc211.org/2005/gmd}URL").text
+
+
+    #record.url = root.find("{http://www.isotc211.org/2005/gmd}distributionInfo").find("{http://www.isotc211.org/2005/gmd}MD_Distribution").find("{http://www.isotc211.org/2005/gmd}distributor").find("{http://www.isotc211.org/2005/gmd}MD_Distributor").find("{http://www.isotc211.org/2005/gmd}distributorTransferOptions").find("{http://www.isotc211.org/2005/gmd}MD_DigitalTransferOptions").find("{http://www.isotc211.org/2005/gmd}onLine").find("{http://www.isotc211.org/2005/gmd}CI_OnlineResource").find("{http://www.isotc211.org/2005/gmd}linkage").find("{http://www.isotc211.org/2005/gmd}URL").text
+
+    #record.url = root.find("{http://www.isotc211.org/2005/gmd}distributionInfo").find("{http://www.isotc211.org/2005/gmd}MD_Distribution").find("{http://www.isotc211.org/2005/gmd}transferOptions").find("{http://www.isotc211.org/2005/gmd}MD_DigitalTransferOptions").find("{http://www.isotc211.org/2005/gmd}onLine").find("{http://www.isotc211.org/2005/gmd}CI_OnlineResource").find("{http://www.isotc211.org/2005/gmd}linkage").find("{http://www.isotc211.org/2005/gmd}URL").text
 
     #record.description = 
     
-    print(record.url)
+    #print(record.url)
 
 def parse_dublin_core(root, record, writer):
     #print(record.file_id)
