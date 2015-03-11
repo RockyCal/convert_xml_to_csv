@@ -27,37 +27,66 @@ hydro10 = "http://hydro10.sdsc.edu/"
 
 dublin_core = "http://dublincore.org/documents/dcmi-terms/"
 
-fieldnames = ['name', 'description', 'resource url', 'keywords', 'defining citation', 'related to',
+fieldnames = ['file_id', 'name', 'description', 'resource url', 'keywords', 'defining citation', 'related to',
               'parent organization', 'abbreviation', 'synonyms', 'funding info']
 
 
+def parse_iso(root, record, writer):
+    print("parsing ISO")
+     #find("{http://www.isotc211.org/2005/gmd}MI_Metadata")
+
+    #find name
+    record.name = root.find("{http://www.isotc211.org/2005/gmd}identificationInfo").find("{http://www.isotc211.org/2005/gmd}MD_DataIdentification").find("{http://www.isotc211.org/2005/gmd}citation").find("{http://www.isotc211.org/2005/gmd}CI_Citation").find("{http://www.isotc211.org/2005/gmd}title").find("{http://www.isotc211.org/2005/gco}CharacterString").text
+
+    print(record.name)
+
+
+    record.url = root.find("{http://www.isotc211.org/2005/gmd}distributionInfo").find("{http://www.isotc211.org/2005/gmd}MD_Distribution").find("{http://www.isotc211.org/2005/gmd}transferOptions").find("{http://www.isotc211.org/2005/gmd}MD_DigitalTransferOptions").find("{http://www.isotc211.org/2005/gmd}onLine").find("{http://www.isotc211.org/2005/gmd}CI_OnlineResource").find("{http://www.isotc211.org/2005/gmd}linkage").find("{http://www.isotc211.org/2005/gmd}URL").text
+
+    #record.description = 
+    
+    print(record.url)
+
 def parse_dublin_core(root, record, writer):
-    print(record.file_id)
+    #print(record.file_id)
     dc = root.find('{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Description')
     record.name = dc.find('{http://purl.org/dc/elements/1.1/}title')
     record.url = dc.find('{http://purl.org/dc/elements/1.1/}identifier').text
     record.description = dc.find('{http://purl.org/dc/elements/1.1/}description').text
     keywords = []
+
     for each in dc.findall('{http://purl.org/dc/elements/1.1/}subject'):
-        print(each.text)
+        #print(each.text)
         if each.text is not None:
             keywords.append(each.text)
+
     if len(keywords) > 1:
         record.keywords = ', '.join(keywords)
     else:
         record.keywords = keywords
+
     if dc.find('{http://purl.org/dc/elements/1.1/}bibliographicCitation'):
         record.defining_citation = dc.find('{http://purl.org/dc/elements/1.1/}bibliographicCitation').text
     else:
         record.defining_citation = ""
+
     if dc.find('{http://purl.org/dc/elements/1.1/}references'):
         record.related_to = dc.find('{http://purl.org/dc/elements/1.1/}references').text
     else:
         record.related_to = ""
-    writer.writerow({'name': record.name, 'resource url': record.url, 'description': record.description, 'keywords':
-                     record.keywords, 'defining citation': record.defining_citation, 'related to':
-                     record.related_to, 'parent organization': '', 'abbreviation': '', 'synonyms': '',
-                     'funding info': ''})
+
+    writer.writerow({
+        'file_id' : record.file_id,
+        'name': record.name, 
+        'resource url': record.url, 
+        'description': record.description, 
+        'keywords': record.keywords, 
+        'defining citation': record.defining_citation, 
+        'related to': record.related_to, 
+        'parent organization': '', 
+        'abbreviation': '', 
+        'synonyms': '',
+        'funding info': ''})
 
 
 def search_dir(request):
@@ -69,6 +98,7 @@ def search_dir(request):
         dir_link = request.full_url
         for file in curr_dir.find_all('a'):
             record = Record(file.text)
+
             if file['href'] != '/metadata/':
                 file_link = urljoin(dir_link, file['href'])
                 try:
@@ -77,14 +107,14 @@ def search_dir(request):
                     print("{}; {}".format(e.msg, request.full_url))
                 tree = eTree.parse(urlopen(file_link))
                 root = tree.getroot()
+
                 if root.tag == "{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF":
                     parse_dublin_core(root, record, writer)
-                #elif root.tag == "{http://www.isotc211.org/2005/gmd}MD_Metdata" or root.tag == "{http://www.isotc211.org/" \
-                #                                                                              "2005/gmi}MI_Metdata":
-                # parse_iso(root, writer)
-
+                elif root.tag == "{http://www.isotc211.org/2005/gmd}MD_Metadata" or root.tag == "{http://www.isotc211.org/2005/gmi}MI_Metadata":
+                    parse_iso(root, record, writer)
 
 def search_from_source(source):
+    """Search/parse through entire directory"""
     soup = BeautifulSoup(urlopen(source))
 
     # Get all links in this page
@@ -99,7 +129,8 @@ def search_from_source(source):
                 print("Error with link: {}, {}, {}".format(e.reason, e.code, e.headers))
             except URLError as e:
                 print("Error with link: {}".format(e.reason))
-            # URL to directory works so now get all the files in that directory
+
+            # URL to directory works so now get all the files in that fdirectory
             # Each 'file' is a http link to xml file
             search_dir(req)
 
