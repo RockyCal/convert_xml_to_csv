@@ -27,14 +27,17 @@ hydro10 = "http://hydro10.sdsc.edu/"
 
 dublin_core = "http://dublincore.org/documents/dcmi-terms/"
 
-fieldnames = ['name', 'description', 'resource url', 'keywords', 'defining citation', 'related to',
+fieldnames = ['file_id', 'name', 'description', 'resource url', 'keywords', 'defining citation', 'related to',
               'parent organization', 'abbreviation', 'synonyms', 'funding info']
 
 
 def parse_dublin_core(root, record, writer):
+    print("-----------------------parsing ISO---------------------------")
+     #find("{http://www.isotc211.org/2005/gmd}MI_Metadata")
+
+    record.file_id = root.find("{http://www.isotc211.org/2005/gmd}fileIdentifier").find("{http://www.isotc211.org/2005/gco}CharacterString").text
+
     print(record.file_id)
-    for child in root.iter():
-        print(child.text)
     dc = root.find('{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Description')
     record.name = dc.find('{http://purl.org/dc/elements/1.1/}title').text
     record.url = dc.find('{http://purl.org/dc/elements/1.1/}identifier').text
@@ -43,6 +46,7 @@ def parse_dublin_core(root, record, writer):
     else:
         record.description = None
     keywords = []
+
     for each in dc.findall('{http://purl.org/dc/elements/1.1/}subject'):
         if each.text is not None:
             keywords.append(each.text)
@@ -57,6 +61,19 @@ def parse_dublin_core(root, record, writer):
                      record.related_to, 'parent organization': '', 'abbreviation': '', 'synonyms': '',
                      'funding info': ''})
 
+    writer.writerow({
+        'file_id' : record.file_id,
+        'name': record.name, 
+        'resource url': record.url, 
+        'description': record.description, 
+        'keywords': record.keywords, 
+        'defining citation': record.defining_citation, 
+        'related to': record.related_to, 
+        'parent organization': '', 
+        'abbreviation': '', 
+        'synonyms': '',
+        'funding info': ''})
+
 
 def search_dir(request):
     resource_title = re.sub('http://hydro10.sdsc.edu/metadata/', '', request.full_url).strip('/ ')
@@ -67,6 +84,7 @@ def search_dir(request):
         dir_link = request.full_url
         for file in curr_dir.find_all('a'):
             record = Record(file.text)
+
             if file['href'] != '/metadata/':
                 file_link = urljoin(dir_link, file['href'])
                 try:
@@ -75,11 +93,11 @@ def search_dir(request):
                     print("{}; {}".format(e.msg, request.full_url))
                 tree = eTree.parse(urlopen(file_link))
                 root = tree.getroot()
+
                 if root.tag == "{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF":
                     parse_dublin_core(root, record, writer)
-                #elif root.tag == "{http://www.isotc211.org/2005/gmd}MD_Metdata" or root.tag == "{http://www.isotc211.org/" \
-                #                                                                              "2005/gmi}MI_Metdata":
-                # parse_iso(root, writer)
+                elif root.tag == "{http://www.isotc211.org/2005/gmd}MD_Metadata" or root.tag == "{http://www.isotc211.org/2005/gmi}MI_Metadata":
+                    parse_iso(root, record, writer)
 
 
 def search_from_source(source):
