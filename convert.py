@@ -30,13 +30,14 @@ dublin_core = "http://dublincore.org/documents/dcmi-terms/"
 fieldnames = ['file_id', 'name', 'description', 'resource url', 'keywords', 'defining citation', 'related to',
               'parent organization', 'abbreviation', 'synonyms', 'funding info']
 
-
-def parse_dublin_core(root, record, writer):
+def parse_iso(root, record, writer):
     print("-----------------------parsing ISO---------------------------")
      #find("{http://www.isotc211.org/2005/gmd}MI_Metadata")
 
     record.file_id = root.find("{http://www.isotc211.org/2005/gmd}fileIdentifier").find("{http://www.isotc211.org/2005/gco}CharacterString").text
 
+
+def parse_dublin_core(root, record, writer):
     print(record.file_id)
     dc = root.find('{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Description')
     record.name = dc.find('{http://purl.org/dc/elements/1.1/}title').text
