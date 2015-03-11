@@ -33,27 +33,25 @@ fieldnames = ['name', 'description', 'resource url', 'keywords', 'defining citat
 
 def parse_dublin_core(root, record, writer):
     print(record.file_id)
+    for child in root.iter():
+        print(child.text)
     dc = root.find('{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Description')
-    record.name = dc.find('{http://purl.org/dc/elements/1.1/}title')
+    record.name = dc.find('{http://purl.org/dc/elements/1.1/}title').text
     record.url = dc.find('{http://purl.org/dc/elements/1.1/}identifier').text
-    record.description = dc.find('{http://purl.org/dc/elements/1.1/}description').text
+    if dc.find('{http://purl.org/dc/elements/1.1/}description'):
+        record.description = dc.find('{http://purl.org/dc/elements/1.1/}description').text
+    else:
+        record.description = None
     keywords = []
     for each in dc.findall('{http://purl.org/dc/elements/1.1/}subject'):
-        print(each.text)
         if each.text is not None:
             keywords.append(each.text)
-    if len(keywords) > 1:
-        record.keywords = ', '.join(keywords)
-    else:
-        record.keywords = keywords
+    record.keywords = ', '.join(keywords)
     if dc.find('{http://purl.org/dc/elements/1.1/}bibliographicCitation'):
         record.defining_citation = dc.find('{http://purl.org/dc/elements/1.1/}bibliographicCitation').text
     else:
         record.defining_citation = ""
-    if dc.find('{http://purl.org/dc/elements/1.1/}references'):
-        record.related_to = dc.find('{http://purl.org/dc/elements/1.1/}references').text
-    else:
-        record.related_to = ""
+    record.related_to = dc.find('{http://purl.org/dc/terms/}references').text
     writer.writerow({'name': record.name, 'resource url': record.url, 'description': record.description, 'keywords':
                      record.keywords, 'defining citation': record.defining_citation, 'related to':
                      record.related_to, 'parent organization': '', 'abbreviation': '', 'synonyms': '',
